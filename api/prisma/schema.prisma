@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Colaborador {
+  matricula  Int         @id @default(autoincrement())
+  nome       String      @unique
+  cpf        Int         @unique
+  senha      String
+  nascimento DateTime
+  sexo       String
+  endereco   String
+  cep        Int
+  cidade     String
+  email      String
+  uf         String
+  telefone   Int
+  ctps       Int
+  pis        Int
+  ativo      Boolean     @default(true)
+  funcaoId   Int
+  finaceiro  Financeiro?
+  dentistaId Int?        @unique
+  dentista   Dentista?   @relation(fields: [dentistaId], references: [id])
+  funcao     Funcao      @relation(fields: [funcaoId], references: [id])
+  createdAt  DateTime    @default(now())
+}
+
+model Funcao {
+  id          Int           @id @default(autoincrement())
+  nome        String
+  descricao   String
+  colaborador Colaborador[]
+  createdAt   DateTime      @default(now())
+}
+
+model Dentista {
+  id            Int                       @id @default(autoincrement())
+  cro           String                    @unique
+  colaborador   Colaborador?
+  consulta      Consulta?
+  createdAt     DateTime                  @default(now())
+  especialidade DentistaOnEspecialidade[]
+}
+
+model Especialidade {
+  id       Int                       @id @default(autoincrement())
+  nome     String
+  dentista DentistaOnEspecialidade[]
+}
+
+model DentistaOnEspecialidade {
+  dentistaId      Int
+  dentista        Dentista      @relation(fields: [dentistaId], references: [id])
+  especialidadeId Int
+  especialidade   Especialidade @relation(fields: [especialidadeId], references: [id])
+
+  @@id([dentistaId, especialidadeId])
+}
+
+model Plano {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  validade DateTime
+  ativo    Boolean   @default(true)
+  paciente Paciente?
+}
+
+model Paciente {
+  id         Int       @id @default(autoincrement())
+  nome       String    @unique
+  cpf        Int       @unique
+  nascimento DateTime
+  sexo       String
+  endereco   String
+  cep        Int
+  cidade     String
+  uf         String
+  email      String
+  telefone   Int
+  ativo      Boolean   @default(true)
+  planoId    Int?      @unique
+  plano      Plano?    @relation(fields: [planoId], references: [id])
+  consulta   Consulta?
+}
+
+model ConsultaOnMaterial {
+  consultaId Int
+  consulta   Consulta @relation(fields: [consultaId], references: [id])
+  materialId Int
+  material   Material @relation(fields: [materialId], references: [id])
+
+  @@id([consultaId, materialId])
+}
+
+model ConsultaOnServico {
+  consultaId Int
+  consulta   Consulta @relation(fields: [consultaId], references: [id])
+  servicoId  Int
+  servico    Servico  @relation(fields: [servicoId], references: [id])
+
+  @@id([consultaId, servicoId])
+}
+
+model Material {
+  id         Int                  @id @default(autoincrement())
+  nome       String
+  quantidade Int
+  consulta   ConsultaOnMaterial[]
+}
+
+model Servico {
+  id       Int                 @id @default(autoincrement())
+  nome     String
+  valor    Float
+  ativo    Boolean             @default(true)
+  consulta ConsultaOnServico[]
+
+}
+
+model Financeiro {
+  id            Int         @id @default(autoincrement())
+  registro      Int
+  valor         Float
+  descricao     String
+  colaboradorId Int         @unique
+  colaborador   Colaborador @relation(fields: [colaboradorId], references: [matricula])
+}
+
+model Consulta {
+  id       Int                  @id @default(autoincrement())
+  consulta DateTime
+  cpf      Int                  @unique
+  paciente Paciente             @relation(fields: [cpf], references: [cpf])
+  cro      String               @unique
+  dentista Dentista             @relation(fields: [cro], references: [cro])
+  material ConsultaOnMaterial[]
+  servico  ConsultaOnServico[]
+}
