@@ -38,5 +38,8 @@ router.post('/material', storeMaterial)
 router.put('/material/:id', updateMaterial)
 router.delete('/material/:id', deleteMaterial)
 
+//Consulta
+
+
 
 export default router
